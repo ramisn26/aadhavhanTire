@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}Quick Bill{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+  [x-cloak] { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper" x-data="quickBill">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Quick Bill</h2>
+    <div>
+      <button class="btn btn-outline-secondary me-2" @click="resetForm">
+        <i class="fas fa-redo"></i> New Bill
+      </button>
+      <button class="btn btn-primary" @click="saveInvoice" :disabled="!canSaveInvoice">
+        <i class="fas fa-save"></i> Save Invoice
+      </button>
+    </div>
+  </div>
+
+  <!-- Customer Search Section -->
+  <div class="card mb-4 fade-in">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <form @submit.prevent="searchCustomer">
+            {{ customer_form.csrf_token }}
+            <div class="mb-3">
+              <label class="form-label">Mobile Number</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="mobile" name="mobile" placeholder="Enter mobile number" x-on:keyup.enter="searchCustomer" :value="customer?.mobile" required>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="col-md-6" x-show="customer" x-cloak>
+          <div class="card bg-light">
+            <div class="card-body">
+              <h5 class="card-title" x-text="customer.name"></h5>
+              <p class="card-text mb-1">
+                <i class="fas fa-phone-alt text-primary"></i>
+                <span x-text="customer.mobile"></span>
+              </p>
+              <p class="card-text mb-1" x-show="customer.email">
+                <i class="fas fa-envelope text-primary"></i>
+                <span x-text="customer.email"></span>
+              </p>
+              <p class="card-text" x-show="customer.gst_number">
+                <i class="fas fa-receipt text-primary"></i>
+                <span x-text="customer.gst_number"></span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle Selection -->
+  <div class="card mb-4 slide-in" x-show="customer" x-cloak>
+    <div class="card-body">
+      <h5 class="card-title mb-3">Vehicle Details</h5>
+      <div class="row">
+        <div class="col-md-6">
+          {{ invoice_form.csrf_token }}
+          <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+            <option value="">Select Vehicle</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice Lines -->
+  <div class="card mb-4 slide-in" x-show="customer" x-cloak>
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="card-title mb-0">Items & Services</h5>
+        <button class="btn btn-primary btn-sm" @click="addLine">
+          <i class="fas fa-plus"></i> Add Line
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 35%">Item/Service</th>
+              <th style="width: 10%">Qty</th>
+              <th style="width: 15%">Price</th>
+              <th style="width: 15%">Discount</th>
+              <th style="width: 15%">GST</th>
+              <th style="width: 15%">Total</th>
+              <th style="width: 5%"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="(line, index) in lines" :key="index">
+              <tr>
+                <td>
+                  <select class="form-select" x-model="line.type" @change="updateLine(index)">
+                    <option value="">Select Type</option>
+                    <option value="item">Item</option>
+                    <option value="service">Service</option>
+                  </select>
+                  <select class="form-select mt-2" x-show="line.type === 'item'"
+                          x-model="line.item_id" @change="fetchItemDetails(index)">
+                    {{ line_form.item_id() }}
+                  </select>
+                  <select class="form-select mt-2" x-show="line.type === 'service'"
+                          x-model="line.service_id" @change="fetchServiceDetails(index)">
+                    {{ line_form.service_id() }}
+                  </select>
+                </td>
+                <td>
+                  <input type="number" class="form-control" x-model="line.quantity"
+                         @input="updateLineTotal(index)" min="1">
+                </td>
+                <td>
+                  <input type="number" class="form-control" x-model="line.unit_price"
+                         @input="updateLineTotal(index)" step="0.01">
+                </td>
+                <td>
+                  <input type="number" class="form-control" x-model="line.discount"
+                         @input="updateLineTotal(index)" min="0" step="0.01">
+                </td>
+                <td>
+                  <div class="input-group">
+                    <input type="number" class="form-control" x-model="line.tax_rate"
+                           @input="updateLineTotal(index)" step="0.01" readonly>
+                    <span class="input-group-text">%</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="fw-bold" x-text="formatCurrency(line.total)"></span>
+                </td>
+                <td>
+                  <button class="btn btn-danger btn-sm" @click="removeLine(index)">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4"></td>
+              <td class="text-end fw-bold">Sub Total:</td>
+              <td colspan="2" class="fw-bold" x-text="formatCurrency(subtotal)"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td class="text-end fw-bold">GST:</td>
+              <td colspan="2" class="fw-bold" x-text="formatCurrency(totalGst)"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td class="text-end fw-bold">Total:</td>
+              <td colspan="2" class="fw-bold text-primary" x-text="formatCurrency(grandTotal)"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Section -->
+  <div class="card mb-4 slide-in" x-show="customer && lines.length > 0" x-cloak>
+    <div class="card-body">
+      <h5 class="card-title mb-3">Payment Details</h5>
+      <div class="row">
+        <div class="col-md-6">
+          {{ payment_form.csrf_token }}
+          <div class="mb-3">
+            <label class="form-label">Payment Method</label>
+            <select class="form-select" id="payment_method" name="payment_method" x-model="payment.method" required>
+              <option value="">Select Payment Method</option>
+              <option value="cash">Cash</option>
+              <option value="card">Card</option>
+              <option value="upi">UPI</option>
+              <option value="bank_transfer">Bank Transfer</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Amount</label>
+            <input type="number" class="form-control" id="amount" name="amount" x-model="payment.amount" min="0" step="0.01" required>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="mb-3">
+            <label class="form-label">Reference</label>
+            <input type="text" class="form-control" id="reference" name="reference" x-model="payment.reference" placeholder="UPI ID, Card last 4 digits, etc.">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes Section -->
+  <div class="card mb-4 slide-in" x-show="customer && lines.length > 0" x-cloak>
+    <div class="card-body">
+      <h5 class="card-title mb-3">Notes</h5>
+      <div class="mb-3">
+        <textarea class="form-control" id="notes" name="notes" rows="3" x-model="notes" placeholder="Add any notes about this invoice..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="position-fixed top-50 start-50 translate-middle" x-show="loading" x-cloak>
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast" x-show="notification.show" x-cloak
+       :class="notification.type" @click="notification.show = false">
+    <div class="d-flex">
+      <div class="toast-body" x-text="notification.message"></div>
+      <button class="btn-close me-2 m-auto" @click="notification.show = false"></button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('quickBill', () => ({
+    customer: null,
+    lines: [],
+    payment: {
+      amount: 0,
+      method: '',
+      reference: ''
+    },
+    notes: '',
+    loading: false,
+    notification: {
+      show: false,
+      message: '',
+      type: 'bg-success text-white'
+    },
+
+    async searchCustomer() {
+      this.loading = true;
+      try {
+        const form = new FormData(document.querySelector('form'));
+        const response = await fetch('/api/customer/search', {
+          method: 'POST',
+          body: form
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          this.customer = data.customer;
+          this.populateVehicles(data.vehicles);
+          this.showNotification('Customer found!', 'success');
+        } else {
+          this.customer = null;
+          this.showNotification(data.message, 'danger');
+        }
+      } catch (error) {
+        this.showNotification('Error searching customer', 'danger');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    populateVehicles(vehicles) {
+      const select = document.querySelector('#vehicle_id');
+      select.innerHTML = '<option value="-1">Select Vehicle</option>';
+      vehicles.forEach(v => {
+        const option = new Option(
+          `${v.registration_number} - ${v.make} ${v.model} (${v.year})`,
+          v.id
+        );
+        select.add(option);
+      });
+    },
+
+    addLine() {
+      this.lines.push({
+        type: '',
+        item_id: null,
+        service_id: null,
+        quantity: 1,
+        unit_price: 0,
+        discount: 0,
+        tax_rate: 0,
+        total: 0
+      });
+    },
+
+    removeLine(index) {
+      this.lines.splice(index, 1);
+      this.updateTotals();
+    },
+
+    async fetchItemDetails(index) {
+      if (!this.lines[index].item_id) return;
+      
+      this.loading = true;
+      try {
+        const response = await fetch(`/api/item/${this.lines[index].item_id}`);
+        const data = await response.json();
+        
+        this.lines[index].unit_price = data.selling_price;
+        this.lines[index].tax_rate = data.gst_rate;
+        this.updateLineTotal(index);
+      } catch (error) {
+        this.showNotification('Error fetching item details', 'danger');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchServiceDetails(index) {
+      if (!this.lines[index].service_id) return;
+      
+      this.loading = true;
+      try {
+        const response = await fetch(`/api/service/${this.lines[index].service_id}`);
+        const data = await response.json();
+        
+        this.lines[index].unit_price = data.price;
+        this.lines[index].tax_rate = data.gst_rate;
+        this.updateLineTotal(index);
+      } catch (error) {
+        this.showNotification('Error fetching service details', 'danger');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    updateLineTotal(index) {
+      const line = this.lines[index];
+      const subtotal = line.quantity * line.unit_price;
+      const afterDiscount = subtotal - line.discount;
+      const tax = afterDiscount * (line.tax_rate / 100);
+      line.total = afterDiscount + tax;
+      this.updateTotals();
+    },
+
+    updateTotals() {
+      this.payment.amount = this.grandTotal;
+    },
+
+    get subtotal() {
+      return this.lines.reduce((sum, line) => sum + (line.quantity * line.unit_price), 0);
+    },
+
+    get totalGst() {
+      return this.lines.reduce((sum, line) => {
+        const afterDiscount = (line.quantity * line.unit_price) - line.discount;
+        return sum + (afterDiscount * (line.tax_rate / 100));
+      }, 0);
+    },
+
+    get grandTotal() {
+      return this.lines.reduce((sum, line) => sum + line.total, 0);
+    },
+
+    get canSaveInvoice() {
+      return this.customer && this.lines.length > 0 && this.grandTotal > 0;
+    },
+
+    formatCurrency(value) {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+      }).format(value);
+    },
+
+    showNotification(message, type) {
+      this.notification = {
+        show: true,
+        message,
+        type: `bg-${type} text-white`
+      };
+      setTimeout(() => {
+        this.notification.show = false;
+      }, 3000);
+    },
+
+    async saveInvoice() {
+      if (!this.canSaveInvoice) return;
+      
+      this.loading = true;
+      try {
+        const invoiceData = {
+          customer_id: this.customer.id,
+          vehicle_id: document.querySelector('#vehicle_id').value,
+          notes: document.querySelector('#notes').value,
+          lines: this.lines,
+          payment: this.payment
+        };
+        
+        const response = await fetch('/invoice/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('#csrf_token').value
+          },
+          body: JSON.stringify(invoiceData)
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          this.showNotification(data.message, 'success');
+          this.resetForm();
+        } else {
+          this.showNotification(data.message, 'danger');
+        }
+      } catch (error) {
+        this.showNotification('Error saving invoice', 'danger');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    resetForm() {
+      this.customer = null;
+      this.lines = [];
+      this.payment = {
+        amount: 0,
+        method: '',
+        reference: ''
+      };
+      this.notes = '';
+      document.querySelector('form').reset();
+      document.querySelector('#vehicle_id').innerHTML = '<option value="">Select Vehicle</option>';
+    }
+  }));
+});
+</script>
+{% endblock %}

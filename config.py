@@ -7,7 +7,7 @@ load_dotenv(os.path.join(basedir, '.env'))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-please-change'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://postgres:postgres@localhost/aadhavhan_tire'
+        'postgresql://postgres:postgres@aadhavhantire-db-1:5432/postgres'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Redis configuration
