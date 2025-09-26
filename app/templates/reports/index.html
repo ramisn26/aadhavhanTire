@@ -3,36 +3,219 @@
 {% block title %}Reports Dashboard{% endblock %}
 
 {% block content %}
-<div class="content-wrapper">
-  <h2>Reports Dashboard</h2>
-  <div class="row mt-4">
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Sales Reports</h5>
-          <p class="card-text">View sales reports and analyze trends.</p>
-          <a href="#" class="btn btn-primary">View Sales Reports</a>
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 fw-bold">Reports Dashboard</h1>
+            <p class="text-muted mb-0">View and analyze your business performance</p>
         </div>
-      </div>
-    </div>
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Purchase Reports</h5>
-          <p class="card-text">Track purchases and inventory costs.</p>
-          <a href="#" class="btn btn-primary">View Purchase Reports</a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-light">
+                <i class="fas fa-calendar-alt me-2"></i>
+                Last 30 Days
+                <i class="fas fa-chevron-down ms-2"></i>
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-download me-2"></i>Export
+            </button>
         </div>
-      </div>
     </div>
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Inventory Reports</h5>
-          <p class="card-text">Monitor stock levels and movements.</p>
-          <a href="#" class="btn btn-primary">View Inventory Reports</a>
+
+    <!-- Stats Overview -->
+    <div class="row g-4 mb-4">
+        <!-- Total Sales -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                            <i class="fas fa-chart-line text-primary"></i>
+                        </div>
+                        <span class="badge bg-success-subtle text-success">
+                            <i class="fas fa-arrow-up me-1"></i>12.5%
+                        </span>
+                    </div>
+                    <h6 class="text-muted mb-2">Total Sales</h6>
+                    <h3 class="fw-bold mb-0">₹245,479</h3>
+                    <small class="text-muted">Compared to ₹218,203 last month</small>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- Orders -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                            <i class="fas fa-shopping-cart text-warning"></i>
+                        </div>
+                        <span class="badge bg-success-subtle text-success">
+                            <i class="fas fa-arrow-up me-1"></i>8.2%
+                        </span>
+                    </div>
+                    <h6 class="text-muted mb-2">Total Orders</h6>
+                    <h3 class="fw-bold mb-0">156</h3>
+                    <small class="text-muted">Compared to 144 last month</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Value -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                            <i class="fas fa-boxes text-info"></i>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger">
+                            <i class="fas fa-arrow-down me-1"></i>3.1%
+                        </span>
+                    </div>
+                    <h6 class="text-muted mb-2">Inventory Value</h6>
+                    <h3 class="fw-bold mb-0">₹892,145</h3>
+                    <small class="text-muted">Compared to ₹920,687 last month</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profit Margin -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                            <i class="fas fa-percentage text-success"></i>
+                        </div>
+                        <span class="badge bg-success-subtle text-success">
+                            <i class="fas fa-arrow-up me-1"></i>1.8%
+                        </span>
+                    </div>
+                    <h6 class="text-muted mb-2">Profit Margin</h6>
+                    <h3 class="fw-bold mb-0">24.8%</h3>
+                    <small class="text-muted">Compared to 23% last month</small>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <div class="row g-4">
+        <!-- Recent Sales Table -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">Recent Sales</h5>
+                        <a href="#" class="btn btn-link text-decoration-none">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th scope="col" class="ps-4">Order ID</th>
+                                    <th scope="col">Customer</th>
+                                    <th scope="col">Product</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col" class="pe-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ps-4">#ORD-2891</td>
+                                    <td>John Smith</td>
+                                    <td>4x Bridgestone 205/55R16</td>
+                                    <td>₹24,000</td>
+                                    <td class="pe-4"><span class="badge bg-success-subtle text-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4">#ORD-2892</td>
+                                    <td>Sarah Johnson</td>
+                                    <td>2x Michelin 185/65R15</td>
+                                    <td>₹15,600</td>
+                                    <td class="pe-4"><span class="badge bg-warning-subtle text-warning">Pending</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4">#ORD-2893</td>
+                                    <td>Mike Wilson</td>
+                                    <td>1x Continental 225/45R17</td>
+                                    <td>₹8,500</td>
+                                    <td class="pe-4"><span class="badge bg-success-subtle text-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4">#ORD-2894</td>
+                                    <td>Emily Brown</td>
+                                    <td>3x Goodyear 195/65R15</td>
+                                    <td>₹18,900</td>
+                                    <td class="pe-4"><span class="badge bg-danger-subtle text-danger">Cancelled</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4">#ORD-2895</td>
+                                    <td>David Lee</td>
+                                    <td>2x Pirelli 225/40R18</td>
+                                    <td>₹22,400</td>
+                                    <td class="pe-4"><span class="badge bg-success-subtle text-success">Completed</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="mb-0 fw-bold">Low Stock Alert</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center p-3 border-bottom">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+                                <i class="fas fa-exclamation-triangle text-danger"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Bridgestone 205/55R16</h6>
+                            <small class="text-muted d-block">Only 2 units left</small>
+                        </div>
+                        <button class="btn btn-light btn-sm">Order</button>
+                    </div>
+                    <div class="d-flex align-items-center p-3 border-bottom">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                                <i class="fas fa-exclamation-circle text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Michelin 185/65R15</h6>
+                            <small class="text-muted d-block">Only 4 units left</small>
+                        </div>
+                        <button class="btn btn-light btn-sm">Order</button>
+                    </div>
+                    <div class="d-flex align-items-center p-3">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                                <i class="fas fa-exclamation-circle text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Continental 225/45R17</h6>
+                            <small class="text-muted d-block">Only 3 units left</small>
+                        </div>
+                        <button class="btn btn-light btn-sm">Order</button>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center py-3">
+                    <a href="#" class="text-decoration-none">View All Inventory</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
 {% endblock %}

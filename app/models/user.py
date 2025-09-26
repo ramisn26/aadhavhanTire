@@ -65,11 +65,16 @@ class User(UserMixin, db.Model):
         """String representation of User."""
         return f'<User {self.name}>'
 
+    def save(self):
+        """Save the user to the database."""
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
 @login_manager.user_loader
 def load_user(user_id):
     """Load user by ID."""
     return User.query.get(int(user_id))
-
-@login_manager.user_loader
-def load_user(id):
-    return User.query.get(int(id))

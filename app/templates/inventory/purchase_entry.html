@@ -3,8 +3,175 @@
 {% block title %}Purchase Entry{% endblock %}
 
 {% block content %}
-<div class="content-wrapper">
-  <h2>Purchase Entry</h2>
-  <p>Coming soon...</p>
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 fw-bold">Purchase Entry</h1>
+            <p class="text-muted mb-0">Record new inventory purchases</p>
+        </div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active">Purchase Entry</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="card border-0 shadow-lg">
+        <div class="card-body p-4">
+            <form id="purchaseForm" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label small fw-medium">Supplier</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-building text-muted"></i>
+                            </span>
+                            <select class="form-select border-start-0" required>
+                                <option value="">Select supplier</option>
+                                <option value="1">Supplier 1</option>
+                                <option value="2">Supplier 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label small fw-medium">Invoice Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-calendar text-muted"></i>
+                            </span>
+                            <input type="date" class="form-control border-start-0" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Items</h5>
+                        <div id="itemsList">
+                            <div class="row mb-3 item-row">
+                                <div class="col-md-4 mb-3 mb-md-0">
+                                    <label class="form-label small fw-medium">Product</label>
+                                    <select class="form-select" required>
+                                        <option value="">Select product</option>
+                                        <option value="1">Tire A</option>
+                                        <option value="2">Tire B</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 mb-3 mb-md-0">
+                                    <label class="form-label small fw-medium">Quantity</label>
+                                    <input type="number" class="form-control" required min="1">
+                                </div>
+                                <div class="col-md-3 mb-3 mb-md-0">
+                                    <label class="form-label small fw-medium">Unit Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="number" class="form-control" required min="0" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-3 mb-md-0">
+                                    <label class="form-label small fw-medium">Total</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="text" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-2">
+                            <i class="fas fa-plus me-1"></i>Add Item
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-medium">Notes</label>
+                        <textarea class="form-control" rows="3" placeholder="Add any additional notes"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span>₹0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Tax (18%)</span>
+                                <span>₹0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total</span>
+                                <span>₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Save Purchase
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+<!-- Add this to your base template if not already present -->
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add item row functionality
+    const addItemBtn = document.querySelector('.btn-outline-primary');
+    const itemsList = document.getElementById('itemsList');
+
+    addItemBtn.addEventListener('click', function() {
+        const newRow = itemsList.children[0].cloneNode(true);
+        // Clear inputs
+        newRow.querySelectorAll('input, select').forEach(input => {
+            input.value = '';
+        });
+        itemsList.appendChild(newRow);
+    });
+
+    // Remove item row
+    itemsList.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-outline-danger')) {
+            if (itemsList.children.length > 1) {
+                e.target.closest('.item-row').remove();
+            }
+        }
+    });
+
+    // Calculate totals
+    itemsList.addEventListener('input', function(e) {
+        if (e.target.matches('input[type="number"]')) {
+            const row = e.target.closest('.item-row');
+            const quantity = row.querySelector('input[type="number"]:nth-of-type(1)').value || 0;
+            const price = row.querySelector('input[type="number"]:nth-of-type(2)').value || 0;
+            const total = quantity * price;
+            row.querySelector('input[readonly]').value = total.toFixed(2);
+            
+            // Calculate grand total
+            let subtotal = 0;
+            document.querySelectorAll('.item-row input[readonly]').forEach(input => {
+                subtotal += parseFloat(input.value || 0);
+            });
+            const tax = subtotal * 0.18;
+            const grandTotal = subtotal + tax;
+
+            document.querySelector('.bg-light span:nth-of-type(2)').textContent = `₹${subtotal.toFixed(2)}`;
+            document.querySelector('.bg-light span:nth-of-type(4)').textContent = `₹${tax.toFixed(2)}`;
+            document.querySelector('.bg-light span:nth-of-type(6)').textContent = `₹${grandTotal.toFixed(2)}`;
+        }
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}
